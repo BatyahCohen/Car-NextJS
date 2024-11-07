@@ -1,11 +1,18 @@
 "use client";
 import styles from "./Cars.module.css";
 import http from "@/Servises/http";
+//import { console } from "inspector";
 import { useEffect, useState } from "react";
 
 export default function Cars() {
   const [cars, setCars] = useState<any[]>([]);
-  const [newCar, setNewCar] = useState<any>({ model: "", color: "" });
+  const [newCar, setNewCar] = useState<any>({
+    _id: "",
+    model: "",
+    plate_number: "",
+    color: "",
+  });
+  const [submitState, setSubmitState] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,12 +26,11 @@ export default function Cars() {
     fetchData();
   }, []);
 
-  // הוספת מכונית חדשה
   const addCar = async () => {
     try {
       const response = await http.post("/cars", newCar);
       setCars([...cars, newCar]);
-      setNewCar({ model: "", color: "" });
+      setNewCar({ _id: "", model: "", plate_number: "", color: "" });
     } catch (error) {
       console.error("Error adding car:", error);
     }
@@ -32,22 +38,48 @@ export default function Cars() {
 
   const deleteCar = async (id: string) => {
     try {
-      console.log("in delete car1")
       await http.delete(`/cars?id=${id}`);
-      console.log("in delete car2")
-      setCars(cars.filter(car => car._id !== id));
+      setCars(cars.filter((car) => car._id !== id));
     } catch (error) {
       console.error("Error deleting car:", error);
     }
   };
 
-  const updateCar = async (id: number) => {};
+  const updateCar = async (car: any) => {
+    setNewCar(car);
+    setSubmitState("update");
+    console.log(newCar)
+  };
 
+  const updateCarInServer = async () => {
+    try {
+      let carToSend={model: newCar.model, plate_number: newCar.plate_number, color: newCar.color}
+      const response = await http.patch(`/cars?id=${newCar._id}`, carToSend);
+      console.log(response.data)
+      console.log()
+      const updatedCars = cars.map((car:any) =>
+        car._id === newCar._id ? newCar : car
+      );
+      setCars(updatedCars);
+    } catch (error) {
+      console.error("Error updating car:", error);
+    }
+    setNewCar({ _id: "", model: "", plate_number: "", color: "" });
+  };
+
+  const submit = () => {
+    if (submitState === "update") {
+      updateCarInServer();
+    } else {
+      addCar();
+    }
+    setSubmitState("");
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.carList}>
-        {cars.map((car, index) => (
+        {cars?.map((car, index) => (
           <div key={index} className={styles.carItem}>
             <p>
               <strong>Model:</strong> {car.model}
@@ -58,17 +90,18 @@ export default function Cars() {
             <p>
               <strong>Plate Number:</strong> {car.plate_number}
             </p>
-            <button onClick={()=>deleteCar(car._id)} className={styles.button}>
+            <button
+              onClick={() => deleteCar(car._id)}
+              className={styles.button}
+            >
               delete Car
             </button>
-            <button onClick={()=>updateCar(index)} className={styles.button}>
+            <button onClick={() => updateCar(car)} className={styles.button}>
               update Car
             </button>
           </div>
         ))}
       </div>
-
-      <h3 className="add-car-title">Add a New Car</h3>
 
       <input
         type="text"
@@ -91,8 +124,8 @@ export default function Cars() {
         placeholder="Car color"
         className={styles.inputField}
       />
-      <button onClick={addCar} className={styles.addCarButton}>
-        Add Car
+      <button onClick={submit} className={styles.addCarButton}>
+        V
       </button>
     </div>
   );

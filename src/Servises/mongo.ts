@@ -25,30 +25,19 @@ export async function deleteDocument(
   return result;
 }
 
-// export async function updateDocument(
-//   client: any,
-//   collection: string,
-//   update: any
-// ) {
-//   const objectId = new ObjectId(update._id); 
-//   const db = client.db("db1");
-//   const result = await db.collection(collection).updateOne({_id:objectId}, { $set: update });
-//   return result;
-// }
-
 export async function updateDocument(
   client: any,
   collection: string,
-  update: any
+  update: object,
+  id: string,
 ) {
-  const objectId = new ObjectId(update._id); 
   const db = client.db("db1");
 
+  console.log(update)
+
   try {
-    console.log(update)
-    console.log(objectId)
     const result = await db.collection(collection).updateOne(
-      { _id: objectId }, 
+      { _id: new ObjectId(id) }, 
       { $set: update }    
     );
     return result;
@@ -62,6 +51,13 @@ export async function updateDocument(
 export async function getAllDocuments(client: any, collection: string) {
   const db = client.db("db1");
   const documents = await db.collection(collection).find().toArray();
+  return documents;
+}
+
+
+export async function getDocumentById(client: any, collection: string,id:string) {
+  const db = client.db("db1");
+  const documents = await db.collection(collection).findOne({ _id: id });
   return documents;
 }
 
