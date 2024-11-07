@@ -35,10 +35,14 @@ export async function POST(req: Request) {
   try {
     let client = await connectDatabase();
     const data = await req.json();
+    console.log(data)
     const response = await insertDocument(client, "Cars", data);
     return NextResponse.json(response);
   } catch (error) {
     console.error(error);
+    return NextResponse.json(
+      { error: "failed to add" },
+      { status: 500 })
   }
 }
 

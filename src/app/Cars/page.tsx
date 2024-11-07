@@ -1,7 +1,6 @@
 "use client";
 import styles from "./Cars.module.css";
-import http from "@/Servises/http";
-//import { console } from "inspector";
+import { add, delete1, getAll, update } from "@/Servises/service";
 import { useEffect, useState } from "react";
 
 export default function Cars() {
@@ -17,7 +16,7 @@ export default function Cars() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await http.get("/cars");
+        const response = await getAll()
         setCars(response.data);
       } catch (error) {
         console.error("Error fetching cars:", error);
@@ -28,7 +27,8 @@ export default function Cars() {
 
   const addCar = async () => {
     try {
-      const response = await http.post("/cars", newCar);
+      const { _id, ...carData } = newCar
+      const response = await add(carData);
       setCars([...cars, newCar]);
       setNewCar({ _id: "", model: "", plate_number: "", color: "" });
     } catch (error) {
@@ -38,7 +38,7 @@ export default function Cars() {
 
   const deleteCar = async (id: string) => {
     try {
-      await http.delete(`/cars?id=${id}`);
+      await delete1(id);
       setCars(cars.filter((car) => car._id !== id));
     } catch (error) {
       console.error("Error deleting car:", error);
@@ -53,8 +53,8 @@ export default function Cars() {
 
   const updateCarInServer = async () => {
     try {
-      let carToSend={model: newCar.model, plate_number: newCar.plate_number, color: newCar.color}
-      const response = await http.patch(`/cars?id=${newCar._id}`, carToSend);
+      const { _id, ...carData } = newCar
+      const response = await update(newCar._id, carData);
       console.log(response.data)
       console.log()
       const updatedCars = cars.map((car:any) =>
